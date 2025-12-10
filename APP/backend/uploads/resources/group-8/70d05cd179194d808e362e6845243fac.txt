@@ -1,0 +1,47 @@
+Lab 11: Built-in network tools
+Type your names here: Titov Mykhailo 
+1.	Find out all the IP(v4) addresses of all DHCP and DNS servers, that your computer is using.
+Example result: DHCP Server:
+→ 10.10.0.1
+DNS Servers:
+→ 147.175.189.53
+→ 147.175.222.53
+→ 1.1.1.1
+
+Example command used: ipconfig /all
+2.	Find out the MTU of the link, that connects your computer to the nearest router.
+Result: 1500
+Command used: netsh interface ipv4 show subinterfaces
+3.	What is the routing metric for your default gateway ?
+Result: 35
+Command used: route print
+4.	What is the IP address of your default gateway – more specifically the IP address of its interface in your LAN network 
+Result: Default gateway LAN IP = 10.10.0.1
+Command used: ipconfig
+5.	What is the IP address of your default gateway – more specifically of its interface facing public Internet ?
+               Result: Hop 2: 147.175.188.132
+Command used: tracert 8.8.8.8
+6.	What is the domain name of the computer with IP address 199.232.19.5, does it even have a domain name ?
+Result:  ns-01.ynet.sk can't find 199.232.19.5: Non-existent domain
+Command used: nslookup 199.232.19.5
+7.	Can you reach the computer with IP address 8.8.8.8 in 5 hops ?
+Result: Hop 5: sanet-ias-geant-gw.rt1.bra.sk.geant.net [83.97.88.237]
+Trace complete.
+Command used: tracert -h 5 8.8.8.8
+8.	How many entries are there in the domain name cache of your computer ?
+Result:94
+Command used: ipconfig /displaydns
+9.	Find out the Network ID of the LAN network that your computer is connected to.
+Result: Network Destination: 10.10.0.0
+Netmask:             255.255.128.0
+Interface:           10.10.114.41
+Command used: ipconfig ;route print
+10.	What is the host name of your computer ?
+Result:
+ Mike_device
+Command used: hostname
+11.	How many intermediate nodes are between you and mixi.jp ?
+Result:22 
+Command used: tracert mixi.jp
+12.	Which command can you use to manually add an entry to the ARP cache of your computer ?
+Command used: arp -s <IP> <MAC>
