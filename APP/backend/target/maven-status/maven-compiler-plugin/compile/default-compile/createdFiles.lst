@@ -1,5 +1,6 @@
 com\app\controller\UserController.class
 com\app\controller\TaskController.class
+com\app\controller\ResourceController.class
 com\app\controller\AuthController.class
 com\app\model\User.class
 com\app\config\Database.class
@@ -15,6 +16,7 @@ com\app\repository\ActivityRepository.class
 com\app\model\Group.class
 com\app\repository\UserRepository.class
 com\app\service\AuthService.class
+com\app\controller\AnalyticsController.class
 com\app\service\UserService.class
 com\app\model\Membership.class
 com\app\service\TaskService.class
@@ -25,10 +27,15 @@ com\app\controller\MembershipController.class
 com\app\repository\GroupRepository.class
 com\app\repository\TaskRepository.class
 com\app\repository\ResourceRepository.class
+com\app\websocket\WebSocketRawConfig.class
+com\app\controller\OAuthController.class
+com\app\websocket\ChatWebSocketHandler$SessionInfo.class
 com\app\repository\MembershipRepository.class
 com\app\StudyGroupBackendApplication.class
 com\app\config\CorsConfig.class
+com\app\websocket\ChatWebSocketHandler.class
 com\app\security\AuthFilter.class
+com\app\config\SecurityConfig.class
 com\app\service\ActivityService.class
 com\app\controller\ActivityController.class
 com\app\dto\UserResponse.class

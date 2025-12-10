@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { apiGet, apiUploadForm, apiDelete, apiDownload } from "../services/api";
+import { apiGet, apiUploadForm, apiDelete, apiDownload, WS_BASE } from "../services/api";
 import "../css/GroupResources.css";
 
 export default function GroupResources({ group, goBack }) {
@@ -53,7 +53,7 @@ export default function GroupResources({ group, goBack }) {
   useEffect(() => {
     if (!groupId) return;
 
-    const ws = new WebSocket("ws://localhost:8080/ws/chat");
+    const ws = new WebSocket(`${WS_BASE}/ws/chat`);
 
     ws.onopen = () => {
       ws.send(JSON.stringify({

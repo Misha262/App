@@ -1,10 +1,14 @@
+import { WS_BASE } from "./api";
+
+const WS_URL = `${WS_BASE}/ws/chat`;
+
 let socket = null;
 let listeners = new Set();
 
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return socket;
 
-  socket = new WebSocket("ws://localhost:8080/ws/chat");
+  socket = new WebSocket(WS_URL);
 
   socket.onopen = () => {
     console.log("[WS] Connected");

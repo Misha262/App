@@ -1,5 +1,9 @@
 // src/services/api.js
-const BASE = "http://localhost:8080";
+// Backend base URL is configurable via Vite env (VITE_API_URL). Falls back to localhost for dev.
+export const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
+// WebSocket base uses dedicated env (VITE_WS_URL) or derives from API_BASE.
+export const WS_BASE = (import.meta.env.VITE_WS_URL || API_BASE.replace(/^http/, "ws")).replace(/\/$/, "");
+const BASE = API_BASE;
 
 // ==========================
 // GET TOKEN

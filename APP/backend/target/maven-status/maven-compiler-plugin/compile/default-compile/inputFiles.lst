@@ -1,9 +1,12 @@
 C:\App\APP\backend\src\main\java\com\app\config\CorsConfig.java
 C:\App\APP\backend\src\main\java\com\app\config\Database.java
+C:\App\APP\backend\src\main\java\com\app\config\SecurityConfig.java
 C:\App\APP\backend\src\main\java\com\app\controller\ActivityController.java
+C:\App\APP\backend\src\main\java\com\app\controller\AnalyticsController.java
 C:\App\APP\backend\src\main\java\com\app\controller\AuthController.java
 C:\App\APP\backend\src\main\java\com\app\controller\GroupController.java
 C:\App\APP\backend\src\main\java\com\app\controller\MembershipController.java
+C:\App\APP\backend\src\main\java\com\app\controller\OAuthController.java
 C:\App\APP\backend\src\main\java\com\app\controller\ResourceController.java
 C:\App\APP\backend\src\main\java\com\app\controller\TaskController.java
 C:\App\APP\backend\src\main\java\com\app\controller\UserController.java

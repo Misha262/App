@@ -6,6 +6,10 @@ import com.app.model.Task;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 public class TaskRepository {
 
@@ -121,6 +125,8 @@ public class TaskRepository {
                            String deadline,
                            String priority) throws SQLException {
 
+        Timestamp deadlineTs = parseDeadline(deadline);
+
         String sql = """
             INSERT INTO TASKS(
                 group_id,
@@ -150,10 +156,10 @@ public class TaskRepository {
             ps.setString(5, description);
             ps.setString(6, status);
 
-            if (deadline == null || deadline.isBlank()) {
-                ps.setNull(7, Types.VARCHAR);
+            if (deadlineTs == null) {
+                ps.setNull(7, Types.TIMESTAMP);
             } else {
-                ps.setString(7, deadline);
+                ps.setTimestamp(7, deadlineTs);
             }
 
             ps.setString(8, priority);
@@ -180,6 +186,8 @@ public class TaskRepository {
                            String deadline,
                            String priority) throws SQLException {
 
+        Timestamp deadlineTs = parseDeadline(deadline);
+
         String sql = """
             UPDATE TASKS
             SET
@@ -204,10 +212,10 @@ public class TaskRepository {
             ps.setString(2, title);
             ps.setString(3, description);
 
-            if (deadline == null || deadline.isBlank()) {
-                ps.setNull(4, Types.VARCHAR);
+            if (deadlineTs == null) {
+                ps.setNull(4, Types.TIMESTAMP);
             } else {
-                ps.setString(4, deadline);
+                ps.setTimestamp(4, deadlineTs);
             }
 
             ps.setString(5, priority);
@@ -248,5 +256,35 @@ public class TaskRepository {
             ps.setInt(1, taskId);
             ps.executeUpdate();
         }
+    }
+
+    /**
+     * Try to parse deadline string into SQL Timestamp.
+     */
+    private Timestamp parseDeadline(String deadline) {
+        if (deadline == null || deadline.isBlank()) return null;
+
+        // ISO with timezone (e.g., 2025-12-31T10:00:00Z or with offset)
+        try {
+            OffsetDateTime odt = OffsetDateTime.parse(deadline);
+            return Timestamp.from(odt.toInstant());
+        } catch (Exception ignored) {
+        }
+
+        // ISO without timezone
+        try {
+            LocalDateTime ldt = LocalDateTime.parse(deadline);
+            return Timestamp.valueOf(ldt);
+        } catch (Exception ignored) {
+        }
+
+        // Date only
+        try {
+            LocalDate d = LocalDate.parse(deadline);
+            return Timestamp.valueOf(d.atStartOfDay());
+        } catch (Exception ignored) {
+        }
+
+        return null;
     }
 }

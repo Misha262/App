@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { apiGet, apiDownload } from "../services/api";
+import { apiGet, apiDownload, WS_BASE } from "../services/api";
 
 function SkeletonMessage() {
   return <div className="chat-message skeleton" style={{ width: "60%" }}></div>;
@@ -59,7 +59,7 @@ export default function Chat({ user, group, goBack, onNotify }) {
   useEffect(() => {
     if (!groupId) return;
 
-    const ws = new WebSocket(`ws://localhost:8080/ws/chat`);
+    const ws = new WebSocket(`${WS_BASE}/ws/chat`);
     socketRef.current = ws;
 
     ws.onopen = () => {

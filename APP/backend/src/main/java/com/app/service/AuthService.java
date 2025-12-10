@@ -62,6 +62,29 @@ public class AuthService {
     }
 
     /**
+     * OAuth2 login or register by email.
+     */
+    public User loginOrRegisterOAuth(String name, String email) throws Exception {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required from OAuth provider");
+        }
+        email = email.trim().toLowerCase();
+        if (name == null || name.isBlank()) {
+            name = email;
+        } else {
+            name = name.trim();
+        }
+
+        User existing = userRepo.findByEmail(email);
+        if (existing != null) {
+            return existing;
+        }
+
+        String hash = BCrypt.hashpw("oauth-google", BCrypt.gensalt());
+        return userRepo.createUser(name, email, hash);
+    }
+
+    /**
      * Смена пароля авторизованным пользователем.
      *
      * @throws IllegalArgumentException если текущий пароль неверный

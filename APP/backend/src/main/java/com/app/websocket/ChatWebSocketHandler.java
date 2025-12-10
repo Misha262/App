@@ -85,7 +85,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 payload.put("taskId", node.path("taskId").asInt());
             }
 
-            broadcast(info.groupId, payload);
+            broadcast(targetGroupId, payload);
         } else if ("typing".equalsIgnoreCase(type)) {
             ObjectNode payload = mapper.createObjectNode();
             payload.put("type", "typing");

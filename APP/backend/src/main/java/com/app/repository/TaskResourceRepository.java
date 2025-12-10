@@ -12,7 +12,7 @@ import java.util.List;
 public class TaskResourceRepository {
 
     public void attach(int taskId, int resourceId) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO TASK_RESOURCES(task_id, resource_id) VALUES(?,?)";
+        String sql = "INSERT INTO TASK_RESOURCES(task_id, resource_id) VALUES(?,?) ON CONFLICT DO NOTHING";
         try (Connection conn = Database.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, taskId);

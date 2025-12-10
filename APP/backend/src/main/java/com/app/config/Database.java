@@ -2,144 +2,143 @@ package com.app.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
 
 /**
  * Simple helper to bootstrap SQLite schema.
  */
 public class Database {
 
-    private static final String URL = "jdbc:sqlite:studyplatform.db";
+    private static final String URL = System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/appdb");
+    private static final String USER = System.getenv().getOrDefault("DB_USER", "appuser");
+    private static final String PASSWORD = System.getenv().getOrDefault("DB_PASSWORD", "");
 
     public static void init() {
         try (Connection conn = get();
              Statement st = conn.createStatement()) {
 
-            st.execute("PRAGMA foreign_keys = ON");
-
             // USERS
             st.execute("""
-                CREATE TABLE IF NOT EXISTS USERS (
-                    user_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id       SERIAL PRIMARY KEY,
                     name          TEXT    NOT NULL,
                     email         TEXT    NOT NULL UNIQUE,
                     password_hash TEXT    NOT NULL,
                     avatar_path   TEXT,
                     bio           TEXT,
-                    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+                    role          TEXT    DEFAULT 'USER',
+                    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """);
 
-            ensureColumnExists(conn, "USERS", "role", "TEXT DEFAULT 'USER'");
-
             // GROUPS
             st.execute("""
-                CREATE TABLE IF NOT EXISTS GROUPS (
-                    group_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS groups (
+                    group_id    SERIAL PRIMARY KEY,
                     name        TEXT    NOT NULL,
                     description TEXT,
                     created_by  INTEGER NOT NULL,
-                    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     visibility  TEXT DEFAULT 'PRIVATE',
-                    FOREIGN KEY (created_by) REFERENCES USERS(user_id) ON DELETE CASCADE
+                    FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE CASCADE
                 );
                 """);
 
             // MEMBERSHIPS
             st.execute("""
-                CREATE TABLE IF NOT EXISTS MEMBERSHIPS (
-                    membership_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS memberships (
+                    membership_id SERIAL PRIMARY KEY,
                     user_id       INTEGER NOT NULL,
                     group_id      INTEGER NOT NULL,
                     role          TEXT    NOT NULL,
-                    joined_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    joined_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, group_id),
-                    FOREIGN KEY (user_id)  REFERENCES USERS(user_id)  ON DELETE CASCADE,
-                    FOREIGN KEY (group_id) REFERENCES GROUPS(group_id) ON DELETE CASCADE
+                    FOREIGN KEY (user_id)  REFERENCES users(user_id)  ON DELETE CASCADE,
+                    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE
                 );
                 """);
 
             // TASKS
             st.execute("""
-                CREATE TABLE IF NOT EXISTS TASKS (
-                    task_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS tasks (
+                    task_id      SERIAL PRIMARY KEY,
                     group_id     INTEGER NOT NULL,
                     created_by   INTEGER NOT NULL,
                     title        TEXT    NOT NULL,
                     description  TEXT,
                     status       TEXT    NOT NULL DEFAULT 'OPEN',
-                    deadline     DATETIME,
+                    deadline     TIMESTAMP,
                     priority     TEXT DEFAULT 'NORMAL',
                     assigned_to  INTEGER,
-                    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at   DATETIME,
-                    FOREIGN KEY (group_id)    REFERENCES GROUPS(group_id) ON DELETE CASCADE,
-                    FOREIGN KEY (created_by)  REFERENCES USERS(user_id)  ON DELETE SET NULL,
-                    FOREIGN KEY (assigned_to) REFERENCES USERS(user_id)  ON DELETE SET NULL
+                    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at   TIMESTAMP,
+                    FOREIGN KEY (group_id)    REFERENCES groups(group_id) ON DELETE CASCADE,
+                    FOREIGN KEY (created_by)  REFERENCES users(user_id)  ON DELETE SET NULL,
+                    FOREIGN KEY (assigned_to) REFERENCES users(user_id)  ON DELETE SET NULL
                 );
                 """);
 
-            // AUTO-MIGRATIONS
-            ensureColumnExists(conn, "TASKS", "assigned_to", "INTEGER");
-            ensureColumnExists(conn, "TASKS", "priority", "TEXT DEFAULT 'NORMAL'");
+            // AUTO-MIGRATIONS (kept for compatibility)
+            ensureColumnExists(conn, "tasks", "assigned_to", "INTEGER");
+            ensureColumnExists(conn, "tasks", "priority", "TEXT DEFAULT 'NORMAL'");
 
-            // TASK_RESOURCES (attachments for tasks)
+            // RESOURCES (создаём до task_resources, т.к. есть FK)
             st.execute("""
-                CREATE TABLE IF NOT EXISTS TASK_RESOURCES (
-                    task_id     INTEGER NOT NULL,
-                    resource_id INTEGER NOT NULL,
-                    PRIMARY KEY (task_id, resource_id),
-                    FOREIGN KEY (task_id) REFERENCES TASKS(task_id) ON DELETE CASCADE,
-                    FOREIGN KEY (resource_id) REFERENCES RESOURCES(resource_id) ON DELETE CASCADE
-                );
-            """);
-
-            // RESOURCES
-            st.execute("""
-                CREATE TABLE IF NOT EXISTS RESOURCES (
-                    resource_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS resources (
+                    resource_id   SERIAL PRIMARY KEY,
                     group_id      INTEGER NOT NULL,
                     uploaded_by   INTEGER NOT NULL,
                     title         TEXT    NOT NULL,
                     type          TEXT    NOT NULL,
                     path_or_url   TEXT    NOT NULL,
                     original_name TEXT,
-                    file_size     INTEGER,
+                    file_size     BIGINT,
                     description   TEXT,
-                    uploaded_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (group_id)    REFERENCES GROUPS(group_id) ON DELETE CASCADE,
-                    FOREIGN KEY (uploaded_by) REFERENCES USERS(user_id) ON DELETE SET NULL
+                    uploaded_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (group_id)    REFERENCES groups(group_id) ON DELETE CASCADE,
+                    FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE SET NULL
                 );
                 """);
 
-            ensureColumnExists(conn, "RESOURCES", "original_name", "TEXT");
-            ensureColumnExists(conn, "RESOURCES", "file_size", "INTEGER");
-            ensureColumnExists(conn, "RESOURCES", "description", "TEXT");
+            ensureColumnExists(conn, "resources", "original_name", "TEXT");
+            ensureColumnExists(conn, "resources", "file_size", "BIGINT");
+            ensureColumnExists(conn, "resources", "description", "TEXT");
+
+            // TASK_RESOURCES (attachments for tasks)
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS task_resources (
+                    task_id     INTEGER NOT NULL,
+                    resource_id INTEGER NOT NULL,
+                    PRIMARY KEY (task_id, resource_id),
+                    FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE,
+                    FOREIGN KEY (resource_id) REFERENCES resources(resource_id) ON DELETE CASCADE
+                );
+            """);
 
             // ACTIVITY_LOG
             st.execute("""
-                CREATE TABLE IF NOT EXISTS ACTIVITY_LOG (
-                    log_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS activity_log (
+                    log_id    SERIAL PRIMARY KEY,
                     user_id   INTEGER,
                     action    TEXT    NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     details   TEXT,
-                    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE SET NULL
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
                 );
                 """);
 
             // MESSAGES
             st.execute("""
-                CREATE TABLE IF NOT EXISTS MESSAGES (
-                    message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                CREATE TABLE IF NOT EXISTS messages (
+                    message_id SERIAL PRIMARY KEY,
                     group_id   INTEGER,
                     user_id    INTEGER,
                     content    TEXT    NOT NULL,
-                    timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (group_id) REFERENCES GROUPS(group_id) ON DELETE CASCADE,
-                    FOREIGN KEY (user_id)  REFERENCES USERS(user_id) ON DELETE SET NULL
+                    timestamp  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id)  REFERENCES users(user_id) ON DELETE SET NULL
                 );
                 """);
 
@@ -158,13 +157,12 @@ public class Database {
 
         if (!exists) {
             try (Statement st = conn.createStatement()) {
-                System.out.println(">>> MIGRATION: adding column " + column + " to " + table);
                 st.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
             }
         }
     }
 
     public static Connection get() throws SQLException {
-        return DriverManager.getConnection(URL);
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }

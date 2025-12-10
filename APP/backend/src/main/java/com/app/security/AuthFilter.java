@@ -7,12 +7,17 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Simple JWT filter: allows /api/auth/* without token, checks Bearer for others.
  */
 @WebFilter("/api/*")
 public class AuthFilter implements Filter {
+
+    private static final Set<String> EXACT_ALLOWED = Set.of(
+            "http://localhost:5173"
+    );
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -27,7 +32,11 @@ public class AuthFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+        String origin = req.getHeader("Origin");
+        boolean isAllowed = origin != null && (EXACT_ALLOWED.contains(origin) || origin.endsWith(".run.app"));
+
+        // Echo back allowed origin (supports Cloud Run *.run.app and localhost dev)
+        resp.setHeader("Access-Control-Allow-Origin", isAllowed ? origin : "http://localhost:5173");
         resp.setHeader("Access-Control-Allow-Credentials", "true");
         resp.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
         resp.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");

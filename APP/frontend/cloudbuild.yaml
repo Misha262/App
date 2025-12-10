@@ -1,0 +1,19 @@
+substitutions:
+  _IMAGE: "europe-central2-docker.pkg.dev/tsiktapp/app/frontend:latest"
+  _VITE_API_URL: "http://localhost:8080"
+  _VITE_WS_URL: "ws://localhost:8080"
+
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - "-t"
+      - "${_IMAGE}"
+      - "--build-arg"
+      - "VITE_API_URL=${_VITE_API_URL}"
+      - "--build-arg"
+      - "VITE_WS_URL=${_VITE_WS_URL}"
+      - "."
+
+images:
+  - "${_IMAGE}"

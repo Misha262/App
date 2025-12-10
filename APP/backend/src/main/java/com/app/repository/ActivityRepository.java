@@ -20,7 +20,7 @@ public class ActivityRepository {
     public void insert(int userId, String action, String details) throws SQLException {
         String sql = """
             INSERT INTO ACTIVITY_LOG (user_id, action, details, timestamp)
-            VALUES (?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
             """;
 
         try (Connection conn = Database.get();
