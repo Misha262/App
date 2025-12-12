@@ -3,9 +3,11 @@ package com.app.controller;
 import com.app.model.Resource;
 import com.app.security.RoleGuard;
 import com.app.service.ActivityService;
+import com.app.service.GcsStorageService;
 import com.app.service.MembershipService;
 import com.app.service.ResourceService;
 import com.app.websocket.ChatWebSocketHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,10 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +29,13 @@ public class ResourceController {
     private final MembershipService membershipService = new MembershipService();
     private final ActivityService activityService = new ActivityService();
     private final ChatWebSocketHandler chatSocket;
-    private final Path storageRoot = Paths.get("uploads", "resources");
 
-    public ResourceController(ChatWebSocketHandler chatSocket) throws IOException {
+    private final GcsStorageService gcs;
+
+    public ResourceController(ChatWebSocketHandler chatSocket,
+                              @Value("${storage.bucket:}") String bucket) {
         this.chatSocket = chatSocket;
-        Files.createDirectories(storageRoot);
+        this.gcs = (bucket == null || bucket.isBlank()) ? null : new GcsStorageService(bucket);
     }
 
     @GetMapping
@@ -75,27 +76,22 @@ public class ResourceController {
         try {
             RoleGuard.requireMember(userId, groupId);
 
+            if (gcs == null) {
+                return ResponseEntity.internalServerError().body(Map.of("error", "Storage bucket is not configured"));
+            }
+
             String originalName = file.getOriginalFilename();
             if (title == null || title.isBlank()) {
                 title = (originalName == null || originalName.isBlank()) ? "File" : originalName;
             }
 
-            String storedName = UUID.randomUUID().toString().replace("-", "");
-            if (originalName != null && originalName.contains(".")) {
-                storedName += originalName.substring(originalName.lastIndexOf('.'));
-            }
-
-            Path dir = storageRoot.resolve("group-" + groupId);
-            Files.createDirectories(dir);
-
-            Path target = dir.resolve(storedName);
-            file.transferTo(target);
+            String objectName = gcs.uploadFile(groupId, file);
 
             Resource saved = resourceService.addFileResource(
                     groupId,
                     userId,
                     title,
-                    storageRoot.relativize(target).toString(),
+                    objectName,
                     originalName,
                     file.getSize(),
                     description
@@ -139,21 +135,24 @@ public class ResourceController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Not a downloadable file"));
             }
 
-            Path filePath = resolveStoragePath(resource.getPathOrUrl());
-            if (!Files.exists(filePath)) {
+            if (gcs == null) {
+                return ResponseEntity.internalServerError().body(Map.of("error", "Storage bucket is not configured"));
+            }
+
+            InputStream stream = gcs.download(resource.getPathOrUrl());
+            if (stream == null) {
                 return ResponseEntity.status(404).body(Map.of("error", "File missing on server"));
             }
 
-            InputStreamResource body = new InputStreamResource(Files.newInputStream(filePath));
+            InputStreamResource body = new InputStreamResource(stream);
 
             String downloadName = resource.getOriginalName() != null
                     ? resource.getOriginalName()
-                    : filePath.getFileName().toString();
+                    : UUID.randomUUID().toString();
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadName + "\"")
-                    .contentLength(Files.size(filePath))
                     .body(body);
 
         } catch (SecurityException e) {
@@ -181,7 +180,9 @@ public class ResourceController {
             }
 
             resourceService.deleteResource(resourceId);
-            deleteStoredFile(resource);
+            if ("FILE".equalsIgnoreCase(resource.getType()) && gcs != null) {
+                gcs.delete(resource.getPathOrUrl());
+            }
 
             activityService.log(userId, "RESOURCE_DELETED",
                     Map.of("groupId", resource.getGroupId(), "resourceId", resourceId));
@@ -201,20 +202,4 @@ public class ResourceController {
         }
     }
 
-    private Path resolveStoragePath(String stored) {
-        Path path = Paths.get(stored);
-        if (path.isAbsolute()) return path;
-        return storageRoot.resolve(path);
-    }
-
-    private void deleteStoredFile(Resource resource) {
-        if (!"FILE".equalsIgnoreCase(resource.getType())) {
-            return;
-        }
-        try {
-            Path path = resolveStoragePath(resource.getPathOrUrl());
-            Files.deleteIfExists(path);
-        } catch (IOException ignored) {
-        }
-    }
 }

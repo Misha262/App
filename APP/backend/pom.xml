@@ -43,6 +43,13 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
+        <!-- GCS client -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.36.0</version>
+        </dependency>
+
         <!-- Cloud SQL socket factory for Postgres (to connect from Cloud Run) -->
         <dependency>
             <groupId>com.google.cloud.sql</groupId>

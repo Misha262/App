@@ -1,8 +1,10 @@
 package com.app.controller;
 
 import com.app.model.Membership;
+import com.app.model.User;
 import com.app.security.RoleGuard;
 import com.app.service.MembershipService;
+import com.app.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 public class MembershipController {
 
     private final MembershipService membershipService = new MembershipService();
+    private final UserRepository userRepository = new UserRepository();
 
     @GetMapping
     public ResponseEntity<?> listMembers(@PathVariable int groupId,
@@ -30,9 +33,18 @@ public class MembershipController {
 
         RoleGuard.requireAdminOrOwner(userId, groupId);
         Integer targetUserId = (Integer) body.get("userId");
+        String email = (String) body.get("email");
         String role = (String) body.getOrDefault("role", "MEMBER");
+
         if (targetUserId == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "userId is required"));
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "userId or email is required"));
+            }
+            User u = userRepository.findByEmail(email);
+            if (u == null) {
+                return ResponseEntity.status(404).body(Map.of("error", "User with this email not found"));
+            }
+            targetUserId = u.getUserId();
         }
 
         Membership created = membershipService.addMember(groupId, targetUserId, role);

@@ -6,6 +6,7 @@ C:\App\APP\backend\src\main\java\com\app\controller\AnalyticsController.java
 C:\App\APP\backend\src\main\java\com\app\controller\AuthController.java
 C:\App\APP\backend\src\main\java\com\app\controller\GroupController.java
 C:\App\APP\backend\src\main\java\com\app\controller\MembershipController.java
+C:\App\APP\backend\src\main\java\com\app\controller\MessageController.java
 C:\App\APP\backend\src\main\java\com\app\controller\OAuthController.java
 C:\App\APP\backend\src\main\java\com\app\controller\ResourceController.java
 C:\App\APP\backend\src\main\java\com\app\controller\TaskController.java
@@ -16,12 +17,14 @@ C:\App\APP\backend\src\main\java\com\app\dto\UserResponse.java
 C:\App\APP\backend\src\main\java\com\app\model\Activity.java
 C:\App\APP\backend\src\main\java\com\app\model\Group.java
 C:\App\APP\backend\src\main\java\com\app\model\Membership.java
+C:\App\APP\backend\src\main\java\com\app\model\Message.java
 C:\App\APP\backend\src\main\java\com\app\model\Resource.java
 C:\App\APP\backend\src\main\java\com\app\model\Task.java
 C:\App\APP\backend\src\main\java\com\app\model\User.java
 C:\App\APP\backend\src\main\java\com\app\repository\ActivityRepository.java
 C:\App\APP\backend\src\main\java\com\app\repository\GroupRepository.java
 C:\App\APP\backend\src\main\java\com\app\repository\MembershipRepository.java
+C:\App\APP\backend\src\main\java\com\app\repository\MessageRepository.java
 C:\App\APP\backend\src\main\java\com\app\repository\ResourceRepository.java
 C:\App\APP\backend\src\main\java\com\app\repository\TaskRepository.java
 C:\App\APP\backend\src\main\java\com\app\repository\TaskResourceRepository.java
@@ -32,6 +35,7 @@ C:\App\APP\backend\src\main\java\com\app\security\JwtUtil.java
 C:\App\APP\backend\src\main\java\com\app\security\RoleGuard.java
 C:\App\APP\backend\src\main\java\com\app\service\ActivityService.java
 C:\App\APP\backend\src\main\java\com\app\service\AuthService.java
+C:\App\APP\backend\src\main\java\com\app\service\GcsStorageService.java
 C:\App\APP\backend\src\main\java\com\app\service\GroupService.java
 C:\App\APP\backend\src\main\java\com\app\service\MembershipService.java
 C:\App\APP\backend\src\main\java\com\app\service\ResourceService.java

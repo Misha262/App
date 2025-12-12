@@ -132,15 +132,22 @@ public class Database {
             // MESSAGES
             st.execute("""
                 CREATE TABLE IF NOT EXISTS messages (
-                    message_id SERIAL PRIMARY KEY,
-                    group_id   INTEGER,
-                    user_id    INTEGER,
-                    content    TEXT    NOT NULL,
-                    timestamp  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    message_id     SERIAL PRIMARY KEY,
+                    group_id       INTEGER,
+                    user_id        INTEGER,
+                    content        TEXT    NOT NULL,
+                    resource_id    INTEGER,
+                    resource_title TEXT,
+                    task_id        INTEGER,
+                    timestamp      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE,
                     FOREIGN KEY (user_id)  REFERENCES users(user_id) ON DELETE SET NULL
                 );
                 """);
+
+            ensureColumnExists(conn, "messages", "resource_id", "INTEGER");
+            ensureColumnExists(conn, "messages", "resource_title", "TEXT");
+            ensureColumnExists(conn, "messages", "task_id", "INTEGER");
 
         } catch (SQLException e) {
             throw new RuntimeException("Failed to init database", e);

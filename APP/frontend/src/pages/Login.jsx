@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiPost } from "../services/api";
+import { apiPost, API_BASE } from "../services/api";
 
 export default function Login({ onLogin, goRegister }) {
   const [email, setEmail] = useState("usercomfy171220187@gmail.com");
@@ -12,7 +12,7 @@ export default function Login({ onLogin, goRegister }) {
     setError("");
     setSuccess(false);
     setLoading(true);
-    window.location.href = `/oauth2/authorization/${provider}`;
+    window.location.href = `${API_BASE}/oauth2/authorization/${provider}`;
   };
 
   const submit = async (e) => {

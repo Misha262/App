@@ -8,12 +8,16 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.app.config.Database;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
@@ -85,6 +89,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 payload.put("taskId", node.path("taskId").asInt());
             }
 
+            // Persist message to DB; failures should not crash websocket
+            Integer resId = node.has("resourceId") ? node.path("resourceId").asInt() : null;
+            String resTitle = node.has("resourceTitle") ? node.path("resourceTitle").asText("") : null;
+            Integer taskId = node.has("taskId") ? node.path("taskId").asInt() : null;
+
+            saveMessage(
+                    targetGroupId,
+                    node.path("userId").asInt(info.userId),
+                    node.path("text").asText(""),
+                    resId,
+                    resTitle,
+                    taskId
+            );
+
             broadcast(targetGroupId, payload);
         } else if ("typing".equalsIgnoreCase(type)) {
             ObjectNode payload = mapper.createObjectNode();
@@ -141,11 +159,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Set<WebSocketSession> sessions = groupSessions.get(groupId);
         if (sessions == null) return;
 
+        // Deduplicate by userId so один пользователь в нескольких сессиях не удваивает онлайн
         List<String> users = sessions.stream()
                 .map(sessionInfo::get)
                 .filter(info -> info != null)
-                .map(info -> info.userName)
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(i -> i.userId, i -> i.userName, (a, b) -> a),
+                        m -> m.values().stream().collect(Collectors.toList())
+                ));
 
         ObjectNode payload = mapper.createObjectNode();
         payload.put("type", "online");
@@ -153,5 +174,21 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         payload.putPOJO("users", users);
 
         broadcast(groupId, payload);
+    }
+
+    private void saveMessage(int groupId, int userId, String text, Integer resourceId, String resourceTitle, Integer taskId) {
+        String sql = "INSERT INTO messages(group_id, user_id, content, resource_id, resource_title, task_id, timestamp) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        try (Connection conn = Database.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            ps.setInt(2, userId);
+            ps.setString(3, text);
+            if (resourceId == null || resourceId == 0) ps.setNull(4, java.sql.Types.INTEGER); else ps.setInt(4, resourceId);
+            if (resourceTitle == null) ps.setNull(5, java.sql.Types.VARCHAR); else ps.setString(5, resourceTitle);
+            if (taskId == null || taskId == 0) ps.setNull(6, java.sql.Types.INTEGER); else ps.setInt(6, taskId);
+            ps.executeUpdate();
+        } catch (Exception ignored) {
+            // intentionally ignore to avoid breaking websocket flow
+        }
     }
 }

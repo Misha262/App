@@ -59,6 +59,36 @@ export default function Chat({ user, group, goBack, onNotify }) {
   useEffect(() => {
     if (!groupId) return;
 
+    setLoading(true);
+    (async () => {
+      try {
+        const hist = await apiGet(`/api/messages?groupId=${groupId}`);
+        if (Array.isArray(hist)) {
+          // shape to align with websocket payload
+          const mapped = hist.map((m) => ({
+            userId: m.userId,
+            userName: m.userName,
+            text: m.content,
+            resourceId: m.resourceId,
+            resourceTitle: m.resourceTitle,
+            taskId: m.taskId,
+            timestamp: m.timestamp,
+          }));
+          setMessages(mapped);
+        } else {
+          setMessages([]);
+        }
+      } catch {
+        setMessages([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [groupId]);
+
+  useEffect(() => {
+    if (!groupId) return;
+
     const ws = new WebSocket(`${WS_BASE}/ws/chat`);
     socketRef.current = ws;
 

@@ -200,7 +200,7 @@ export default function Groups({
 
   const addMember = async () => {
     if (!activeGroup || !newMemberId) return;
-    await apiMembers.add(activeGroup.groupId, Number(newMemberId), newMemberRole);
+    await apiMembers.add(activeGroup.groupId, newMemberId, newMemberRole);
     setNewMemberId("");
     await loadMembers(activeGroup.groupId);
   };
@@ -527,7 +527,7 @@ export default function Groups({
               <div style={{ fontSize: 11, color: "#64748b" }}>Add member</div>
               <input
                 className="input"
-                placeholder="User ID"
+                placeholder="User ID or email"
                 value={newMemberId}
                 onChange={(e) => setNewMemberId(e.target.value)}
               />

@@ -1,0 +1,127 @@
+.snake-wrap {
+  padding: 24px;
+  min-height: 100%;
+  background: radial-gradient(circle at 20% 20%, #10141c, #080a10 45%);
+  color: #e5e7eb;
+}
+
+.snake-hero {
+  display: grid;
+  grid-template-columns: 1fr 520px;
+  gap: 32px;
+  background: linear-gradient(145deg, #0c0f16, #0a0c12 60%, #090b10);
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.snake-meta h1 {
+  font-size: 34px;
+  line-height: 1.1;
+  margin: 8px 0 12px;
+}
+
+.snake-meta h1 span {
+  display: block;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.snake-meta p {
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.snake-kicker {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #10b981;
+}
+
+.snake-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.snake-cta button {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+}
+
+.snake-cta button:hover {
+  filter: brightness(1.05);
+}
+
+.snake-score {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.snake-dead {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.snake-canvas {
+  background: #080a10;
+  border-radius: 14px;
+  border: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+canvas {
+  border-radius: 10px;
+  background: #0a0c10;
+}
+
+.snake-controls {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.snake-controls button {
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 10px 16px;
+  min-width: 70px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.snake-controls-row {
+  display: flex;
+  gap: 10px;
+}
+
+.snake-controls button:active {
+  filter: brightness(1.15);
+}
+
+@media (max-width: 960px) {
+  .snake-hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+}

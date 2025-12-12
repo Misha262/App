@@ -219,8 +219,15 @@ export async function apiChangeEmail(email) {
 // ==========================
 export const apiMembers = {
   list: (groupId) => apiGet(`/api/groups/${groupId}/members`),
-  add: (groupId, userId, role = "MEMBER") =>
-    apiPost(`/api/groups/${groupId}/members`, { userId, role }),
+  add: (groupId, userOrEmail, role = "MEMBER") => {
+    const body = { role };
+    if (typeof userOrEmail === "string" && userOrEmail.includes("@")) {
+      body.email = userOrEmail.trim();
+    } else if (userOrEmail !== undefined && userOrEmail !== null && userOrEmail !== "") {
+      body.userId = Number(userOrEmail);
+    }
+    return apiPost(`/api/groups/${groupId}/members`, body);
+  },
   changeRole: (groupId, membershipId, role) =>
     apiPost(`/api/groups/${groupId}/members/${membershipId}/role`, { role }),
   remove: (groupId, membershipId) =>

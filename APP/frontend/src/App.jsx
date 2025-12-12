@@ -3,6 +3,7 @@ import "./App.css";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Groups from "./pages/Groups";
+import Snake from "./pages/Snake";
 import Tasks from "./pages/Tasks";
 import Chat from "./pages/Chat";
 import GroupResources from "./pages/GroupResources";
@@ -10,10 +11,8 @@ import { connectWebSocket, subscribe, joinGroups } from "./services/ws";
 import { apiChangePassword, apiChangeEmail } from "./services/api";
 
 const sidebarLinks = [
-  { id: "groups", icon: "☰", label: "Groups" },
-  { id: "tasks", icon: "🗂", label: "Tasks" },
-  { id: "chat", icon: "💬", label: "Chat" },
-  { id: "resources", icon: "📁", label: "Resources" },
+  { id: "groups", icon: "::", label: "Groups" },
+  { id: "snake", icon: ">", label: "Game" },
 ];
 
 const headerTabs = [
@@ -152,6 +151,11 @@ function App() {
       return;
     }
 
+    if (destination === "snake") {
+      setPage("snake");
+      return;
+    }
+
     if (destination === "tasks") {
       openTasks();
       return;
@@ -164,6 +168,7 @@ function App() {
 
     if (destination === "resources") {
       openResources();
+      return;
     }
   };
 
@@ -272,6 +277,10 @@ function App() {
       return <GroupResources group={selectedGroup} goBack={() => setPage("groups")} />;
     }
 
+    if (page === "snake") {
+      return <Snake user={user} />;
+    }
+
     return (
       <div className="neo-empty-state">
         <p>Select a group from the dashboard to open this section.</p>
@@ -281,7 +290,6 @@ function App() {
 
   const filters = [
     { label: "Date", value: "Now" },
-    { label: "Product", value: "All" },
     { label: "Profile", value: user?.name || "You" },
   ];
 
@@ -332,20 +340,12 @@ function App() {
 
             <div className="neo-sidebar-links">
               {sidebarLinks.map((link) => {
-                const isDisabled =
-                  (link.id === "tasks" || link.id === "chat" || link.id === "resources") &&
-                  !selectedGroup;
                 const isActive =
-                  (link.id === "groups" && page === "groups") ||
-                  (link.id === "tasks" && page === "tasks") ||
-                  (link.id === "chat" && page === "chat") ||
-                  (link.id === "resources" && page === "resources");
-
+                  link.id === "snake" ? page === "snake" : page !== "snake";
                 return (
                   <button
                     key={link.id}
                     className={`neo-sidebar-link ${isActive ? "is-active" : ""}`}
-                    disabled={isDisabled}
                     onClick={() => handlePrimaryNav(link.id)}
                   >
                     <span>{link.icon}</span>
@@ -361,9 +361,7 @@ function App() {
             <header className="neo-topbar">
               <div className="neo-top-tabs">
                 {headerTabs.map((tab) => {
-                  const isDisabled =
-                    (tab.id === "tasks" || tab.id === "chat" || tab.id === "resources") &&
-                    !selectedGroup;
+                  const isDisabled = (tab.id !== "groups") && !selectedGroup;
                   const isActive = page === tab.id;
 
                   return (
@@ -395,7 +393,9 @@ function App() {
                   </div>
                   <div className="neo-profile-text" onClick={openAccountSettings} style={{cursor:"pointer"}}>
                     <span className="neo-profile-name">{user?.name}</span>
-                    <span className="neo-profile-handle">@study</span>
+                    <span className="neo-profile-handle">
+                      @{user?.email || user?.name || "user"}
+                    </span>
                   </div>
                   <button className="neo-logout" onClick={handleLogout}>
                     Logout
