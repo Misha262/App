@@ -69,7 +69,3 @@
   gcloud run deploy backend     --image europe-central2-docker.pkg.dev/tsiktapp/app/backend:latest     --port 8080 --allow-unauthenticated     --add-cloudsql-instances tsiktapp:europe-central2:studyapp-db     --set-env-vars "GOOGLE_CLIENT_ID=...,GOOGLE_CLIENT_SECRET=...,app.frontend.url=https://frontend-821395306768.europe-central2.run.app,DB_URL=jdbc:postgresql://google/appdb?socketFactory=com.google.cloud.sql.postgres.SocketFactory&cloudSqlInstance=tsiktapp:europe-central2:studyapp-db,DB_USER=appuser,DB_PASSWORD=...,STORAGE_BUCKET=tsiktapp-resources"
   ```
 - OAuth redirect URIs (Google Console): `https://backend-821395306768.europe-central2.run.app/login/oauth2/code/google` and `https://backend-mpiswxpygq-lm.a.run.app/login/oauth2/code/google`; JS origins = frontend URLs.
-
-## UI notes
-- Dark neomorphic style; top tabs Dashboard/Tasks/Chat/Resources; left menu: Groups + Game (Snake).
-- Snake: keyboard and swipe controls, on-screen buttons for touch.
